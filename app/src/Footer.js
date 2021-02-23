@@ -34,18 +34,6 @@ export function Footer() {
           </div>
         </div>
       </div>
-
-      <div className="video-sec col-md-4 col-sm-12 col-xs-12">
-        <h1 className="video-heading text-center">
-          <img src="images/pluralsight-white.png" alt="" />
-        </h1>
-        <span className="border"></span>
-        <p className="footer-p">
-          This site is created for demonstrative purposes only and does not
-          offer any real products or services.
-        </p>
-        <p></p>
-      </div>
     </footer>
   );
 }
