@@ -9,7 +9,7 @@ const SESSIONS = gql`
   query sessions($day: String!) {
     sessions(day: $day) {
       id
-      title
+      titles
       day
       room
       level
@@ -23,11 +23,14 @@ function AllSessionList() {
 }
 
 function SessionList ({ day }) {
-  const { loading, data } = useQuery(SESSIONS, {
+  if(day === '') day = "Wednesday";
+  const { loading, data, error } = useQuery(SESSIONS, {
     variables: { day }
   });
   
   if(loading) return <p>Loading sessions....</p>
+
+  if(error) return <p>Something went wrong</p>
 
   return data.sessions.map(session => (
     <SessionItem 
