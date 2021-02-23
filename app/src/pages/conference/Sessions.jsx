@@ -9,7 +9,7 @@ const SESSIONS = gql`
   query sessions($day: String!) {
     sessions(day: $day) {
       id
-      titles
+      title
       day
       room
       level
