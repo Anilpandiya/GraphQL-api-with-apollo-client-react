@@ -13,6 +13,10 @@ const SESSIONS = gql`
       day
       room
       level
+      speakers{
+        id
+        name
+      }
     }
   }
 `;
@@ -41,7 +45,7 @@ function SessionList ({ day }) {
 }
 
 function SessionItem({session}) {
-  const { id, title, day, room, level } = session;
+  const { id, title, day, room, level, speakers } = session;
 
   /* ---> Replace hard coded session values with data that you get back from GraphQL server here */
   return (
@@ -57,6 +61,14 @@ function SessionItem({session}) {
           <h5>{`Level: ${level} `}</h5>
         </div>
         <div className="panel-footer">
+          {speakers.map(({id, name}) => [
+            <span key={id} style={{padding:2}}>
+              <Link to={`/conference/speaker/${id}`}>
+                view {name}'s profile
+              </Link>
+            </span>
+          ])
+          }
         </div>
       </div>
     </div>
