@@ -5,20 +5,37 @@ import { Formik, Field, Form } from "formik";
 import { gql, useQuery } from "@apollo/client";
 
 /* ---> Define queries, mutations and fragments here */
-const SESSIONS = gql`
-  query sessions($day: String!) {
-    sessions(day: $day) {
+
+//Fragment
+const SESSIONS_ATTRIBUTES = gql `
+  fragment SessionInfo on Session {
       id
       title
       day
+      startsAt
       room
       level
       speakers{
         id
         name
       }
+  }
+`
+// Aliases example with fragments
+
+const SESSIONS = gql`
+  query sessions($day: String!) {
+    intro: sessions(day: $day, level: "Introductory and overview") {
+      ...SessionInfo
+    }
+    intermediate: sessions(day: $day, level: "Intermediate") {
+      ...SessionInfo
+    }
+    advanced: sessions(day: $day, level: "Advanced") {
+      ...SessionInfo
     }
   }
+  ${SESSIONS_ATTRIBUTES}
 `;
 
 function AllSessionList() {
@@ -36,16 +53,41 @@ function SessionList ({ day }) {
 
   if(error) return <p>Something went wrong</p>
 
-  return data.sessions.map(session => (
-    <SessionItem 
-      id={session.id}
-      session={{...session}}
+  const results = [];
+
+  results.push(data.intro.map(session => (
+    <SessionItem
+      key={session.id}
+      session={{
+        ...session
+      }}
     />
-  ))
+  )));
+
+  results.push(data.intermediate.map(session => (
+    <SessionItem
+      key={session.id}
+      session={{
+        ...session
+      }}
+    />
+  )));
+
+  results.push(data.advanced.map(session => (
+    <SessionItem
+      key={session.id}
+      session={{
+        ...session
+      }}
+    />
+  )));
+
+
+  return results;
 }
 
 function SessionItem({session}) {
-  const { id, title, day, room, level, speakers } = session;
+  const { id, title, day, room, level, startsAt, speakers } = session;
 
   /* ---> Replace hard coded session values with data that you get back from GraphQL server here */
   return (
@@ -53,12 +95,12 @@ function SessionItem({session}) {
       <div className="panel panel-default">
         <div className="panel-heading">
           <h3 className="panel-title">{title}</h3>
-          <h5>{`Level: `}</h5>
+          <h5>{`Level: ${level} `}</h5>
         </div>
         <div className="panel-body">
           <h5>{`Day: ${day} `}</h5>
           <h5>{`Room Number: ${room}`}</h5>
-          <h5>{`Level: ${level} `}</h5>
+          <h5>{`Starts At: ${startsAt} `}</h5>
         </div>
         <div className="panel-footer">
           {speakers.map(({id, name}) => [
