@@ -3672,6 +3672,20 @@
       "level": "Intermediate",
       "day": "Wednesday",
       "id": "943ed60f-615c-4abd-a71f-22e0bb8f905e"
+    },
+    {
+      "title": "Mutation demo",
+      "description": "create session mutation",
+      "level": "Intermediate",
+      "day": "Friday",
+      "id": "fd077595-0a93-4d4e-b373-8487cdc4fca0"
+    },
+    {
+      "title": "Feature/bugs 21 08 20 to develop",
+      "description": "create session mutation",
+      "level": "Intermediate",
+      "day": "ad",
+      "id": "2ad5adc3-567d-4211-aa0f-6df2915d3d06"
     }
   ]
 }
