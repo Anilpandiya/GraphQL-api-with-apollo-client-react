@@ -441,7 +441,8 @@
           "name": "R for Data Science"
         }
       ],
-      "name": "Milan Silva"
+      "name": "Milan Silva",
+      "featured": true
     },
     {
       "id": "3884cc4d-8364-4316-9b9a-e16561d87af3",
@@ -456,7 +457,8 @@
           "name": "Software and the Art of Delivery"
         }
       ],
-      "name": "Sally Martinez"
+      "name": "Sally Martinez",
+      "featured": true
     },
     {
       "id": "07a4abd7-18be-4eae-9bce-cb3cb3223229",
