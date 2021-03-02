@@ -1,75 +1,92 @@
-import React, { useState } from "react";  
+import React, {useState} from "react";  
 import "./style-sessions.css";
+import { gql, useQuery, useMutation } from "@apollo/client"
 import { Link } from "react-router-dom"
-import { Formik, Field, Form } from "formik";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import { Formik, Field, Form } from "formik"
 
-/* ---> Define queries, mutations and fragments here */
-
-//Fragment with Directives
-const SESSIONS_ATTRIBUTES = gql `
+const SESSIONS_ATTRIBUTES = gql`
   fragment SessionInfo on Session {
+    id
+		title
+    startsAt
+		day
+		room
+		level
+    speakers {
       id
-      title
-      day
-      startsAt
-      room
-      level
-      description @include(if : $isDescription)
-      speakers{
-        id
-        name
-      }
+      name
+    }  
   }
-`
-// Aliases example with fragments
+`;
 
-const SESSIONS = gql`
-  query sessions($day: String!, $isDescription: Boolean!) {
-    intro: sessions(day: $day, level: "Introductory and overview") {
-      ...SessionInfo
-    }
-    intermediate: sessions(day: $day, level: "Intermediate") {
-      ...SessionInfo
-    }
-    advanced: sessions(day: $day, level: "Advanced") {
+const CREATE_SESSION = gql`
+  mutation createSession($session: SessionInput!) {
+    createSession(session: $session) {
       ...SessionInfo
     }
   }
   ${SESSIONS_ATTRIBUTES}
 `;
 
-// Mutation - for creating a new session
-const CREATE_SESSION = gql `
-  mutation createSession($session: SessionInput!){
-    createSession(session: $session){
-      id
-      title
-    }
-  }
+// Define the query
+const SESSIONS = gql`
+	query sessions($day: String!) {
+		intro: sessions(day: $day, level: "Introductory and overview") {
+			...SessionInfo
+		}
+    intermediate: sessions(day: $day, level: "Intermediate") {
+      ...SessionInfo
+		}
+    advanced: sessions(day: $day, level: "Advanced") {
+			...SessionInfo
+		}
+	}
+  ${SESSIONS_ATTRIBUTES}
 `;
- 
+
+
+const ALL_SESSIONS = gql`
+	query sessions {
+    sessions {
+      ...SessionInfo
+    }
+	}
+  ${SESSIONS_ATTRIBUTES}
+`;
 
 function AllSessionList() {
-   /* ---> Invoke useQuery hook here to retrieve all sessions and call SessionItem */
-   return <SessionItem />
+  const { loading, error, data } = useQuery(ALL_SESSIONS);
+
+    if (loading) return <p>Loading Sessions..</p>
+  
+    if (error) return <p>Error loading sessions!</p>
+
+    return data.sessions.map((session) => (
+      <SessionItem
+        key={session.id}
+        session={{
+          ...session
+        }}
+      />
+    ));
 }
 
 function SessionList ({ day }) {
-  if(day === '') day = "Wednesday";
-  let isDescription = true;
 
-  const { loading, data, error } = useQuery(SESSIONS, {
-    variables: { day, isDescription }
+  if (day == "") day = "Wednesday"
+
+	// execute query and store response json
+  const { loading, error, data } = useQuery(SESSIONS, {
+    variables: {day}
   });
   
-  if(loading) return <p>Loading sessions....</p>
+	if (loading) return <p>Loading Sessions..</p>
 
-  if(error) return <p>Something went wrong</p>
+  if (error) return <p>Error loading sessions!</p>
 
-  const results = [];
+	const results = [];
 
-  results.push(data.intro.map(session => (
+  results.push(data.intro.map((session) => (
     <SessionItem
       key={session.id}
       session={{
@@ -77,8 +94,8 @@ function SessionList ({ day }) {
       }}
     />
   )));
-
-  results.push(data.intermediate.map(session => (
+  
+  results.push(data.intermediate.map((session) => (
     <SessionItem
       key={session.id}
       session={{
@@ -86,8 +103,8 @@ function SessionList ({ day }) {
       }}
     />
   )));
-
-  results.push(data.advanced.map(session => (
+  
+  results.push(data.advanced.map((session) => (
     <SessionItem
       key={session.id}
       session={{
@@ -95,37 +112,36 @@ function SessionList ({ day }) {
       }}
     />
   )));
+  
+  return results
 
-
-  return results;
 }
 
-function SessionItem({session}) {
-  const { id, title, day, room, level, startsAt, speakers, description } = session;
-
-  /* ---> Replace hard coded session values with data that you get back from GraphQL server here */
+function SessionItem({ session }) {
+	const { id, title, day, room, level, startsAt, speakers } = session
   return (
     <div key={id} className="col-xs-12 col-sm-6" style={{ padding: 5 }}>
       <div className="panel panel-default">
         <div className="panel-heading">
           <h3 className="panel-title">{title}</h3>
-          <h5>{`Level: ${level} `}</h5>
+          <h5>{`Level: ${level}`}</h5>
         </div>
         <div className="panel-body">
-          <h5>{`Day: ${day} `}</h5>
+          <h5>{`Day: ${day}`}</h5>
           <h5>{`Room Number: ${room}`}</h5>
-          <h5>{`Starts At: ${startsAt} `}</h5>
-          { description && <h5>{`Description: ${description} `}</h5>}
+          <h5>{`Starts at: ${startsAt}`}</h5>
         </div>
         <div className="panel-footer">
-          {speakers.map(({id, name}) => [
-            <span key={id} style={{padding:2}}>
-              <Link to={`/conference/speaker/${id}`}>
-                view {name}'s profile
+        {speakers.map(({ id, name }) => (
+            <span key={id} style={{ padding: 2 }}>
+              <Link
+                className="btn btn-default btn-lg"
+                to={`/conference/speaker/${id}`}
+              >
+                View {name}'s Profile
               </Link>
             </span>
-          ])
-          }
+          ))}
         </div>
       </div>
     </div>
@@ -161,8 +177,8 @@ export function Sessions() {
               Friday
             </button >
           </div>
-          { day !== 'All' && <SessionList day={day} />}
-          { day === 'All' && <AllSessionList /> }
+          <SessionList day={day} />
+          { day =='All' && <AllSessionList /> }
         </div>
       </section>
     </>
@@ -171,12 +187,27 @@ export function Sessions() {
 
 export function SessionForm() {	
 
-  /* ---> Call useMutation hook here to create new session and update cache */
-const [create, { called, error }] = useMutation(CREATE_SESSION);
+  const updateSessions = (cache, { data }) => {
+    cache.modify({ 
+      fields: {
+        sessions(exisitingSessions = []) {
+          const newSession = data.createSession;
+          cache.writeQuery({
+            query: ALL_SESSIONS,
+            data: { newSession, ...exisitingSessions }
+          });
+        }
+      }
+    })
+  };
 
-  if(called) return <p>Session submitted successfully</p>
+  const [ create, { called, error } ] = useMutation(CREATE_SESSION, {
+    update: updateSessions
+  });
 
-  if(error) return <p>Something went wrong</p>
+  if(called) return <p>Session Submitted Successfully!</p>
+
+  if(error) return <p>Failed to submit session</p>
 
   return (	
     <div	
@@ -195,9 +226,8 @@ const [create, { called, error }] = useMutation(CREATE_SESSION);
           day: "",	
           level: "",	
         }}	
-        onSubmit={async (values) => {
-          /* ---> Call useMutation mutate function here to create new session */
-          await create({variables: {session: values}});
+        onSubmit={ async (values) => {
+          await create({ variables: {session: values }});
         }}	
       >	
         {() => (	
